@@ -1,0 +1,58 @@
+--#################################################################################################################################
+--########################################### PRODUTOS:
+
+-> GET TODOS OS PRODUTOS
+http://localhost:8080/produtos/
+
+// ------------------------------------------------------------------------------------------
+-> GET PRODUTO POR ID
+http://localhost:8080/produtos/f1597f9e-ea20-4d9c-bfac-e2fbc5d096f3
+
+// ------------------------------------------------------------------------------------------
+-> DELETE PRODUTO POR ID
+http://localhost:8080/produtos/f1597f9e-ea20-4d9c-bfac-e2fbc5d096f3
+
+// ------------------------------------------------------------------------------------------
+-> POST NOVO PRODUTO
+http://localhost:8080/produtos/
+
+{
+    "descricao": "lapis de cor",
+    "tipoFinalidadeProduto": "PRODUTO"
+}
+
+// ------------------------------------------------------------------------------------------
+-> ALL GETS:
+
+http://localhost:8080/produtos/buscarPorTipoFinalidade?codigo=1
+
+http://localhost:8080/produtos/buscarPorDescricao?descricao=caneca
+
+http://localhost:8080/produtos/buscarPorDtCadastro?data=23/08/2020
+
+http://localhost:8080/produtos/buscarPorPeriodo?dataInicio=01/08/2020&dataFim=23/08/2020
+
+--#################################################################################################################################
+--########################################### PEDIDOS:
+
+	{
+		"ativo": true,
+        "descricao": "Caneca dourada brilhante amarela nova embalada 2018",
+         "valorCusto": 50.00
+    }
+
+
+	    {
+  "valorPercentualDesconto": 5.00,
+              "itens": [
+                {
+
+                  "produto": {
+                      "id": "b1a9b839-4518-4f6c-af1f-4d18cfab7511"
+                  },
+
+                    "quantidade": 2.0
+                    }
+                  ]
+}
+
