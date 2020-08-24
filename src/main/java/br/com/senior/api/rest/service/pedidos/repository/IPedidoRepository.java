@@ -20,7 +20,7 @@ public interface IPedidoRepository extends JpaRepository<Pedido, UUID> {
     @Query(value = "select * from senior_services.ss02_pedido where date(dt_cadastro) = :#{#data} order by dt_cadastro", nativeQuery = true)
     List<Pedido> recuperarTodosPorDataCadastro(@Param("data") LocalDate data);
 
-    @Query(value = "select * from dt_cadastro where date(dt_cadastro) between :#{#dataInicio} and :#{#dataFim} order by dt_cadastro", nativeQuery = true)
+    @Query(value = "select * from senior_services.ss02_pedido where date(dt_cadastro) between :#{#dataInicio} and :#{#dataFim} order by dt_cadastro", nativeQuery = true)
     List<Pedido> recuperarTodosPorPeriodoDtCadastro(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim);
 
 }

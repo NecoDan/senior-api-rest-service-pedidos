@@ -2,8 +2,10 @@ package br.com.senior.api.rest.service.pedidos.controller;
 
 import br.com.senior.api.rest.service.pedidos.model.pedido.ItemPedido;
 import br.com.senior.api.rest.service.pedidos.model.pedido.Pedido;
+import br.com.senior.api.rest.service.pedidos.model.pedido.StatusPedido;
 import br.com.senior.api.rest.service.pedidos.service.gerador.IGeraPedido;
 import br.com.senior.api.rest.service.pedidos.service.negocio.IPedidoService;
+import br.com.senior.api.rest.service.pedidos.util.exceptions.ServiceException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -93,6 +95,17 @@ public class PedidoController {
         }
     }
 
+    @ApiOperation(value = "Retorna todos os pedidos, a partir do filtro <b>codigo</b> referente ao Status Pedido aos quais estão associado ao(s) pedidos.")
+    @GetMapping("pedidos/buscarPorStatus")
+    public ResponseEntity<List<Pedido>> listAllFromStatusPedido(@RequestParam("codigo") @Valid Integer codigo) {
+        try {
+            return getResponseDefaultFromList(this.pedidoService.recuperarTodosPorStatus(StatusPedido.fromCodigo(codigo)));
+        } catch (ServiceException e) {
+            log.error(e.getLocalizedMessage());
+            return new ResponseEntity(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @ApiOperation(value = "Responsável por atualizar um Pedido, a partir de um @PathVariable contendo o id {UIID} do registro e um consumer {Pedido} como corpo da requisição.")
     @PutMapping("/pedidos/itemPedido/{id}")
     public ResponseEntity<ItemPedido> updateItemPedido(@PathVariable(value = "id") String id,
@@ -125,6 +138,6 @@ public class PedidoController {
     }
 
     private ResponseEntity<List<Pedido>> getResponseDefaultFromList(List<Pedido> pedidoList) {
-        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity("Nenhum produto encontrado", HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
+        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity("Nenhum pedido(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
     }
 }
