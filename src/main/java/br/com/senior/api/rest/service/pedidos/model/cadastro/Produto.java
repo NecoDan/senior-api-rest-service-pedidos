@@ -72,6 +72,24 @@ public class Produto extends AbstractEntity {
     }
 
     @JsonIgnore
+    public Produto geraValorCustoAutomatico() {
+        gerarValorCustoAutomatico();
+        return this;
+    }
+
+    @JsonIgnore
+    public Produto geraCodigoBarrasAutomatico() {
+        gerarCodigoBarrasAutomatico();
+        return this;
+    }
+
+    @JsonIgnore
+    public Produto geraCodigoProdutoAutomatico() {
+        gerarCodigoProdutoAutomatico();
+        return this;
+    }
+
+    @JsonIgnore
     public boolean isValorCustoInvalido() {
         return (Objects.isNull(this.valorCusto) || DecimaUtil.isEqualsToZero(this.valorCusto));
     }

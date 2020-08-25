@@ -36,7 +36,6 @@ import java.util.UUID;
 public class ProdutoController {
 
     private final IProdutoService produtoService;
-    private static final String DESCRICAO_STATUS_ERRO_INTERNO = "Error";
 
     @ApiOperation(value = "Retorna todos os produtos existentes com paginação")
     @GetMapping("/produtos")
@@ -133,7 +132,7 @@ public class ProdutoController {
     }
 
     private ResponseEntity<List<Produto>> getResponseDefaultFromList(List<Produto> produtoList) {
-        return (Objects.isNull(produtoList) || produtoList.isEmpty()) ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(produtoList, HttpStatus.OK);
+        return (Objects.isNull(produtoList) || produtoList.isEmpty()) ? new ResponseEntity("Responser server: Nenhum produto(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(produtoList, HttpStatus.OK);
     }
 }
 

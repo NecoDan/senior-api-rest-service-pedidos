@@ -106,7 +106,7 @@ public class PedidoController {
         }
     }
 
-    @ApiOperation(value = "Responsável por atualizar um Pedido, a partir de um @PathVariable contendo o id {UIID} do registro e um consumer {Pedido} como corpo da requisição.")
+    @ApiOperation(value = "Responsável por atualizar um item do Pedido, a partir de um @PathVariable contendo o id {UIID} do registro e um consumer {ItemPedido} como corpo da requisição.")
     @PutMapping("/pedidos/itemPedido/{id}")
     public ResponseEntity<ItemPedido> updateItemPedido(@PathVariable(value = "id") String id,
                                                        @RequestBody @Valid ItemPedido itemPedido) {
@@ -138,6 +138,6 @@ public class PedidoController {
     }
 
     private ResponseEntity<List<Pedido>> getResponseDefaultFromList(List<Pedido> pedidoList) {
-        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity("Nenhum pedido(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
+        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity("Responser server: Nenhum pedido(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
     }
 }

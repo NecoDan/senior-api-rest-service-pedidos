@@ -1,6 +1,5 @@
-package br.com.senior.api.rest.service.pedidos.uteis;
+package br.com.senior.api.rest.service.pedidos.util.uteis;
 
-import br.com.senior.api.rest.service.pedidos.util.uteis.RandomicoUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
