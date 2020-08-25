@@ -37,19 +37,20 @@ public class PedidoController {
 
     private final IPedidoService pedidoService;
     private final IGeraPedido geraPedido;
+    private static final String MSG_VALIDACAO_NOT_FOUND = "Response server: Nenhum pedido(s) encontrado.";
 
     @ApiOperation(value = "Retorna todos os produtos existentes paginável.")
     @GetMapping("/pedidos")
     public ResponseEntity<Page<Pedido>> getAllPedidos(@PageableDefault(page = 0, size = 10, sort = "dataCadastro", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<Pedido> produtoPage = this.pedidoService.recuperarTodos(pageable);
-        return (produtoPage.isEmpty()) ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<Page<Pedido>>(produtoPage, HttpStatus.OK);
+        return (produtoPage.isEmpty()) ? new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND) : new ResponseEntity<Page<Pedido>>(produtoPage, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Retorna um único pedido existente, caso exista, a partir de seu id {UIID} registrado.")
     @GetMapping("/pedidos/{id}")
     public ResponseEntity<Pedido> getOnePedido(@PathVariable(value = "id") String id) {
         Optional<Pedido> optionalPedido = this.pedidoService.recuperarPorId(UUID.fromString(id));
-        return optionalPedido.map(pedido -> new ResponseEntity<>(pedido, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return optionalPedido.map(pedido -> new ResponseEntity<>(pedido, HttpStatus.OK)).orElseGet(() -> new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND));
     }
 
     @ApiOperation(value = "Responsável por persistir um Pedido, a partir de um consumer {Pedido} passado como parâmetro no corpo da requisição...")
@@ -67,7 +68,7 @@ public class PedidoController {
     @DeleteMapping("/pedidos/{id}")
     public ResponseEntity<?> deletePedido(@PathVariable(value = "id") String id) {
         try {
-            return (pedidoService.excluirPor(UUID.fromString(id))) ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return (pedidoService.excluirPor(UUID.fromString(id))) ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -81,14 +82,14 @@ public class PedidoController {
         try {
             if (!pedido.getItens().isEmpty()) {
                 String mensagemValidacaoItens = "Não é possível atualizar e/ou adicionar itens ao pedido por meio desta URI. URI disponiveis: \n"
-                        + " * Para Atualzar Item: {METHOD_PUT} http://localhost:8080/pedidos/itemPedido/" + "\n"
-                        + " * Para Adicionar Item: {METHOD_POST} http://localhost:8080/pedidos/itemPedido/adicionarItem" + "\n";
+                        + " * Para Atualzar Item: {METHOD_PUT} /pedidos/itemPedido/" + "\n"
+                        + " * Para Adicionar Item: {METHOD_POST} /pedidos/itemPedido/adicionarItem" + "\n";
                 log.error(mensagemValidacaoItens);
                 return new ResponseEntity(mensagemValidacaoItens, HttpStatus.BAD_REQUEST);
             }
 
             Optional<Pedido> produtoOptional = Optional.of(geraPedido.atualizarPedido(UUID.fromString(id), pedido));
-            return produtoOptional.map(p -> new ResponseEntity<>(p, HttpStatus.ACCEPTED)).orElseGet(() -> new ResponseEntity("Pedido não encontrado", HttpStatus.NOT_FOUND));
+            return produtoOptional.map(p -> new ResponseEntity<>(p, HttpStatus.ACCEPTED)).orElseGet(() -> new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND));
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
             return new ResponseEntity(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -138,6 +139,6 @@ public class PedidoController {
     }
 
     private ResponseEntity<List<Pedido>> getResponseDefaultFromList(List<Pedido> pedidoList) {
-        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity("Responser server: Nenhum pedido(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
+        return (Objects.isNull(pedidoList) || pedidoList.isEmpty()) ? new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND) : new ResponseEntity<>(pedidoList, HttpStatus.OK);
     }
 }

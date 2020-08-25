@@ -36,12 +36,13 @@ import java.util.UUID;
 public class ProdutoController {
 
     private final IProdutoService produtoService;
+    private static final String MSG_VALIDACAO_NOT_FOUND = "Response server: Nenhum produtos(s) encontrado.";
 
     @ApiOperation(value = "Retorna todos os produtos existentes com paginação")
     @GetMapping("/produtos")
     public ResponseEntity<Page<Produto>> getAllProdutos(@PageableDefault(page = 0, size = 10, sort = "descricao", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<Produto> produtoPage = this.produtoService.recuperarTodos(pageable);
-        return (produtoPage.isEmpty()) ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<Page<Produto>>(produtoPage, HttpStatus.OK);
+        return (produtoPage.isEmpty()) ? new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND) : new ResponseEntity<Page<Produto>>(produtoPage, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Retorna um único produto existente, caso exista, a partir de seu id {UIID} registrado.")
@@ -57,7 +58,7 @@ public class ProdutoController {
             return new ResponseEntity<>(this.produtoService.salvar(produto), HttpStatus.CREATED);
         } catch (ServiceException e) {
             log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity(e.getLocalizedMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -65,7 +66,7 @@ public class ProdutoController {
     @DeleteMapping("/produtos/{id}")
     public ResponseEntity<?> deleteProduto(@PathVariable(value = "id") String id) {
         try {
-            return (produtoService.excluirPor(UUID.fromString(id))) ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return (produtoService.excluirPor(UUID.fromString(id))) ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND);
         } catch (ServiceException e) {
             log.error(e.getMessage());
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,7 +79,7 @@ public class ProdutoController {
                                                  @RequestBody @Valid Produto produto) {
         try {
             Optional<Produto> produtoOptional = Optional.of(produtoService.atualizar(UUID.fromString(id), produto));
-            return produtoOptional.map(p -> new ResponseEntity<>(p, HttpStatus.ACCEPTED)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            return produtoOptional.map(p -> new ResponseEntity<>(p, HttpStatus.ACCEPTED)).orElseGet(() -> new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND));
         } catch (ServiceException e) {
             log.error(e.getLocalizedMessage());
             return new ResponseEntity(e.getLocalizedMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -132,7 +133,7 @@ public class ProdutoController {
     }
 
     private ResponseEntity<List<Produto>> getResponseDefaultFromList(List<Produto> produtoList) {
-        return (Objects.isNull(produtoList) || produtoList.isEmpty()) ? new ResponseEntity("Responser server: Nenhum produto(s) encontrado.", HttpStatus.NOT_FOUND) : new ResponseEntity<>(produtoList, HttpStatus.OK);
+        return (Objects.isNull(produtoList) || produtoList.isEmpty()) ? new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND) : new ResponseEntity<>(produtoList, HttpStatus.OK);
     }
 }
 
