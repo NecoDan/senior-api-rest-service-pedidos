@@ -5,6 +5,7 @@ import br.com.senior.api.rest.service.pedidos.model.cadastro.TipoFinalidadeProdu
 import br.com.senior.api.rest.service.pedidos.service.negocio.ProdutoService;
 import br.com.senior.api.rest.service.pedidos.util.uteis.RandomicoUtil;
 import br.com.senior.api.rest.service.pedidos.util.uteis.StringUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,8 +24,11 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
@@ -31,11 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProdutoController.class)
 public class ProdutoControllerTest {
 
-    private static final String PATH_PADRAO = "/produtos";
-    private static final String URI = PATH_PADRAO + "/{action}";
+    private static final String BASE_URL = "/produtos";
+    private static final String URI = BASE_URL + "/{action}";
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     @MockBean
     private ProdutoService produtoService;
@@ -45,8 +50,38 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatas() throws Exception {
-        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatas: ");
+    public void deveRetornarProducerJSONAoCriarProdutoMethodPOST() throws Exception {
+        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatasMethodGET: ");
+
+        // -- 01_Cenário
+        ObjectMapper objectMapper = new ObjectMapper();
+        Produto produto = constroiProdutoValido();
+        produto.setDataCadastro(null);
+
+        // -- 02_Ação
+        given(produtoService.salvar(produto)).willReturn(produto);
+        ResultActions responseResultActions = this.mockMvc.perform(post(BASE_URL)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(produto))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+        );
+
+        // -- 03_Verificação_Validação
+        responseResultActions
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.descricao").isNotEmpty())
+                .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
+                .andExpect(jsonPath("$.valorCusto").isNumber())
+                .andExpect(jsonPath("$.codigoProduto").isNumber());
+
+        verify(produtoService).salvar(any(Produto.class));
+        toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatasMethodGET() throws Exception {
+        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatasMethodGET: ");
 
         // -- 01_Cenário
         LocalDate dataInicio = LocalDate.now();
@@ -57,7 +92,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarTodosPorPeriodo(dataInicio, dataFim)).willReturn(produtoList);
-        String uri = PATH_PADRAO.concat("/buscarPorPeriodo?dataInicio=" + StringUtil.formatLocalDate(dataInicio) + "&" + "dataFim=" + StringUtil.formatLocalDate(dataInicio));
+        String uri = BASE_URL.concat("/buscarPorPeriodo?dataInicio=" + StringUtil.formatLocalDate(dataInicio) + "&" + "dataFim=" + StringUtil.formatLocalDate(dataInicio));
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -71,8 +106,8 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void deveRetornarProducerJSONContendoUmaListaProdutosApenasPorUmaDataFiltroInsercao() throws Exception {
-        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosApenasPorUmaDataFiltroInsercao: ");
+    public void deveRetornarProducerJSONContendoUmaListaProdutosApenasPorUmaDataFiltroInsercaoMethodGET() throws Exception {
+        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosApenasPorUmaDataFiltroInsercaoMethodGET: ");
 
         // -- 01_Cenário
         LocalDate dataFiltro = LocalDate.now();
@@ -80,7 +115,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarPorDataCadastro(dataFiltro)).willReturn(produtoList);
-        String uri = PATH_PADRAO.concat("/buscarPorDtCadastro?data=" + StringUtil.formatLocalDate(dataFiltro));
+        String uri = BASE_URL.concat("/buscarPorDtCadastro?data=" + StringUtil.formatLocalDate(dataFiltro));
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -94,8 +129,8 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroTipoFinalidadeProd() throws Exception {
-        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroTipoFinalidadeProd: ");
+    public void deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroTipoFinalidadeProdMethodGET() throws Exception {
+        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroTipoFinalidadeProdMethodGET: ");
 
         // -- 01_Cenário
         TipoFinalidadeProduto tipoFinalidadeProduto = TipoFinalidadeProduto.PRODUTO_1;
@@ -103,7 +138,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarTodosPorTipoFinalidade(tipoFinalidadeProduto)).willReturn(produtoList);
-        String uri = PATH_PADRAO.concat("/buscarPorTipoFinalidade?codigo=" + tipoFinalidadeProduto.getCodigo());
+        String uri = BASE_URL.concat("/buscarPorTipoFinalidade?codigo=" + tipoFinalidadeProduto.getCodigo());
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -117,8 +152,8 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroDescricaoProd() throws Exception {
-        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroDescricaoProd: ");
+    public void deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroDescricaoProdMethodGET() throws Exception {
+        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorFiltroDescricaoProdMethodGET: ");
 
         // -- 01_Cenário
         String descricao = "Cadeira";
@@ -126,7 +161,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarPorDescricao(descricao)).willReturn(produtoList);
-        String uri = PATH_PADRAO.concat("/buscarPorDescricao?descricao=" + descricao);
+        String uri = BASE_URL.concat("/buscarPorDescricao?descricao=" + descricao);
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -150,7 +185,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarPorId(idProduto)).willReturn(Optional.of(produto));
-        String uri = PATH_PADRAO.concat("/").concat(idProduto.toString());
+        String uri = BASE_URL.concat("/").concat(idProduto.toString());
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -174,7 +209,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarPorDescricao("")).willReturn(null);
-        String uri = PATH_PADRAO.concat("/buscarPorDescricao?descricao=" + "");
+        String uri = BASE_URL.concat("/buscarPorDescricao?descricao=" + "");
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -195,7 +230,7 @@ public class ProdutoControllerTest {
 
         // -- 02_Ação
         given(produtoService.recuperarPorDataCadastro(null)).willReturn(null);
-        String uri = PATH_PADRAO.concat("/buscarPorDtCadastro?data=" + "");
+        String uri = BASE_URL.concat("/buscarPorDtCadastro?data=" + "");
         ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
@@ -244,6 +279,6 @@ public class ProdutoControllerTest {
     }
 
     private ResultActions getResponseEntityEndPointsMethodGET(String url, MediaType mediaType) throws Exception {
-        return this.mvc.perform(get(url).accept(mediaType));
+        return this.mockMvc.perform(get(url).accept(mediaType));
     }
 }
