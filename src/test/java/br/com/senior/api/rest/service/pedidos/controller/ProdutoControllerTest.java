@@ -6,7 +6,11 @@ import br.com.senior.api.rest.service.pedidos.repository.IProdutoRepository;
 import br.com.senior.api.rest.service.pedidos.service.negocio.ProdutoService;
 import br.com.senior.api.rest.service.pedidos.util.uteis.RandomicoUtil;
 import br.com.senior.api.rest.service.pedidos.util.uteis.StringUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,12 +22,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.Assert.assertTrue;
@@ -50,9 +57,17 @@ public class ProdutoControllerTest {
     @MockBean
     private IProdutoRepository produtoRepository;
 
+    private ObjectMapper objectMapper;
+
     @Before
     public void setUp() throws Exception {
-
+        JavaTimeModule module = new JavaTimeModule();
+        LocalDateTimeDeserializer localDateTimeDeserializer = new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:dd"));
+        module.addDeserializer(LocalDateTime.class, localDateTimeDeserializer);
+        this.objectMapper = Jackson2ObjectMapperBuilder.json()
+                .modules(module)
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
     }
 
     private void exibirLogResultPraVerificarRetorno(ResultActions resultActions) throws UnsupportedEncodingException {
@@ -65,15 +80,14 @@ public class ProdutoControllerTest {
         log.info("\n#TEST: deveRetornarStatus201EProducerJSONAoCriarProdutoMethodPOST: ");
 
         // -- 01_Cenário
-        ObjectMapper objectMapper = new ObjectMapper();
         Produto produto = constroiProdutoValido();
-        produto.setDataCadastro(null);
+//        produto.setDataCadastro(null);
 
         // -- 02_Ação
         given(produtoService.salvar(produto)).willReturn(produto);
         ResultActions responseResultActions = this.mockMvc.perform(post(BASE_URL)
                 .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(produto))
+                .content(getJsonValueProdutoFromProdutoObj(produto))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         );
 
@@ -98,7 +112,6 @@ public class ProdutoControllerTest {
         log.info("\n#TEST: deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT: ");
 
         // -- 01_Cenário
-        ObjectMapper objectMapper = new ObjectMapper();
         Produto produtoParam = constroiProdutoValido();
         produtoParam.setDataCadastro(null);
 
@@ -110,7 +123,7 @@ public class ProdutoControllerTest {
         given(produtoService.atualizar(idProdutoParam, produtoParam)).willReturn(produtoResultUpdate);
         ResultActions responseResultActions = this.mockMvc.perform(put(BASE_URL.concat("/" + produtoParam.getId()))
                 .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(produtoResultUpdate))
+                .content(getJsonValueProdutoFromProdutoObj(produtoResultUpdate))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         );
 
@@ -307,6 +320,10 @@ public class ProdutoControllerTest {
         produto.ativado();
         produto.gerarDataCorrente();
         return produto;
+    }
+
+    private String getJsonValueProdutoFromProdutoObj(Produto produto) throws JsonProcessingException {
+        return this.objectMapper.writeValueAsString(produto);
     }
 
     private void toStringEnd(ResultActions response, MediaType mediaType) throws Exception {
