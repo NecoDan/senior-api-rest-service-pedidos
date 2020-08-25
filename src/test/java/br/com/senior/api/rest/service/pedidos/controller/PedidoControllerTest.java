@@ -191,8 +191,9 @@ public class PedidoControllerTest {
                 .geraCodigoBarrasAutomatico();
 
         produto.geraId();
-        produto.ativado();
         produto.gerarDataCorrente();
+        produto.ativado();
+
         return produto;
     }
 
