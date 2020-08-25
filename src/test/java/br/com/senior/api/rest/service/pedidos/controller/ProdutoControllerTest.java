@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,8 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
@@ -50,8 +50,45 @@ public class ProdutoControllerTest {
     }
 
     @Test
-    public void deveRetornarProducerJSONAoCriarProdutoMethodPOST() throws Exception {
-        log.info("\n#TEST: deveRetornarProducerJSONContendoUmaListaProdutosPorIntervaloDatasMethodGET: ");
+    public void deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT() throws Exception {
+        log.info("\n#TEST: deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT: ");
+
+        // -- 01_Cenário
+        ObjectMapper objectMapper = new ObjectMapper();
+        Produto produtoParam = constroiProdutoValido();
+        produtoParam.setDataCadastro(null);
+
+        UUID idProduto = produtoParam.getId();
+        Produto produtoResultUpdate = produtoParam;
+        produtoResultUpdate.setValorCusto(RandomicoUtil.gerarValorRandomicoDecimal());
+
+
+        // -- 02_Ação
+        given(produtoService.atualizar(idProduto, produtoParam)).willReturn(produtoResultUpdate);
+        ResultActions responseResultActions = this.mockMvc.perform(put(BASE_URL.concat("/" + produtoParam.getId()))
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(produtoResultUpdate))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+        );
+
+        // -- 03_Verificação_Validação
+        responseResultActions
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.descricao").isNotEmpty())
+                .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
+                .andExpect(jsonPath("$.valorCusto").isNumber())
+                .andExpect(jsonPath("$.codigoProduto").isNumber());
+        verify(produtoService).atualizar(any(UUID.class), any(Produto.class));
+
+        String statusResponse = String.valueOf(responseResultActions.andReturn().getResponse().getStatus());
+        log.info("#TEST_RESULT_STATUS: ".concat((statusResponse.isEmpty()) ? " " : HttpStatus.valueOf(Integer.parseInt(statusResponse)).toString()));
+        toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void deveRetornarStatus201EProducerJSONAoCriarProdutoMethodPOST() throws Exception {
+        log.info("\n#TEST: deveRetornarStatus201EProducerJSONAoCriarProdutoMethodPOST: ");
 
         // -- 01_Cenário
         ObjectMapper objectMapper = new ObjectMapper();
@@ -74,8 +111,10 @@ public class ProdutoControllerTest {
                 .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
                 .andExpect(jsonPath("$.valorCusto").isNumber())
                 .andExpect(jsonPath("$.codigoProduto").isNumber());
-
         verify(produtoService).salvar(any(Produto.class));
+
+        String statusResponse = String.valueOf(responseResultActions.andReturn().getResponse().getStatus());
+        log.info("#TEST_RESULT_STATUS: ".concat((statusResponse.isEmpty()) ? " " : HttpStatus.valueOf(Integer.parseInt(statusResponse)).toString()));
         toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
     }
 
@@ -93,16 +132,16 @@ public class ProdutoControllerTest {
         // -- 02_Ação
         given(produtoService.recuperarTodosPorPeriodo(dataInicio, dataFim)).willReturn(produtoList);
         String uri = BASE_URL.concat("/buscarPorPeriodo?dataInicio=" + StringUtil.formatLocalDate(dataInicio) + "&" + "dataFim=" + StringUtil.formatLocalDate(dataInicio));
-        ResultActions response = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
+        ResultActions responseResultActions = getResponseEntityEndPointsMethodGET(uri, MediaType.APPLICATION_JSON);
 
         // -- 03_Verificação_Validação
-        response.andExpect(status().isOk())
+        responseResultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.[*].id").exists())
                 .andExpect(jsonPath("$.[*].dataCadastro").isNotEmpty());
-        Assert.assertNotNull(response.andReturn().getResponse().getContentAsString());
+        Assert.assertNotNull(responseResultActions.andReturn().getResponse().getContentAsString());
 
-        toStringEnd(response, MediaType.APPLICATION_JSON);
+        toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
     }
 
     @Test
