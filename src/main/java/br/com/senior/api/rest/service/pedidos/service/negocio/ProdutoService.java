@@ -1,6 +1,5 @@
 package br.com.senior.api.rest.service.pedidos.service.negocio;
 
-
 import br.com.senior.api.rest.service.pedidos.model.cadastro.Produto;
 import br.com.senior.api.rest.service.pedidos.model.cadastro.TipoFinalidadeProduto;
 import br.com.senior.api.rest.service.pedidos.repository.IProdutoRepository;
@@ -118,7 +117,7 @@ public class ProdutoService implements IProdutoService {
     @Override
     @Transactional
     public boolean excluir(Produto produto) throws ServiceException {
-        return (!Objects.isNull(produto)) && excluirPor(produto.getId());
+        return (Objects.nonNull(produto)) && excluirPor(produto.getId());
     }
 
     @Override
@@ -127,7 +126,11 @@ public class ProdutoService implements IProdutoService {
             throw new ServiceException("{ID} referente ao Produto encontra-se inválido e/ou inexistente {NULL}.");
 
         validarProdutoPermiteExclusao(id);
+        return efetuarExclusao(id);
+    }
 
+    @Override
+    public boolean efetuarExclusao(UUID id) {
         return recuperarPorId(id)
                 .map(prod -> {
                     this.produtoRepository.deleteById(prod.getId());

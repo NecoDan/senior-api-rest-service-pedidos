@@ -44,5 +44,7 @@ public interface IProdutoService {
     @Transactional
     boolean excluirPor(UUID id) throws ServiceException;
 
+    boolean efetuarExclusao(UUID id);
+
     void validarProdutoPermiteExclusao(UUID id) throws ServiceException;
 }

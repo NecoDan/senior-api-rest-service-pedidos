@@ -2,6 +2,7 @@ package br.com.senior.api.rest.service.pedidos.controller;
 
 import br.com.senior.api.rest.service.pedidos.model.cadastro.Produto;
 import br.com.senior.api.rest.service.pedidos.model.cadastro.TipoFinalidadeProduto;
+import br.com.senior.api.rest.service.pedidos.repository.IProdutoRepository;
 import br.com.senior.api.rest.service.pedidos.service.negocio.ProdutoService;
 import br.com.senior.api.rest.service.pedidos.util.uteis.RandomicoUtil;
 import br.com.senior.api.rest.service.pedidos.util.uteis.StringUtil;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -45,45 +47,17 @@ public class ProdutoControllerTest {
     @MockBean
     private ProdutoService produtoService;
 
+    @MockBean
+    private IProdutoRepository produtoRepository;
+
     @Before
     public void setUp() throws Exception {
+
     }
 
-    @Test
-    public void deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT() throws Exception {
-        log.info("\n#TEST: deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT: ");
-
-        // -- 01_Cenário
-        ObjectMapper objectMapper = new ObjectMapper();
-        Produto produtoParam = constroiProdutoValido();
-        produtoParam.setDataCadastro(null);
-
-        UUID idProduto = produtoParam.getId();
-        Produto produtoResultUpdate = produtoParam;
-        produtoResultUpdate.setValorCusto(RandomicoUtil.gerarValorRandomicoDecimal());
-
-
-        // -- 02_Ação
-        given(produtoService.atualizar(idProduto, produtoParam)).willReturn(produtoResultUpdate);
-        ResultActions responseResultActions = this.mockMvc.perform(put(BASE_URL.concat("/" + produtoParam.getId()))
-                .accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(produtoResultUpdate))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-        );
-
-        // -- 03_Verificação_Validação
-        responseResultActions
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.descricao").isNotEmpty())
-                .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
-                .andExpect(jsonPath("$.valorCusto").isNumber())
-                .andExpect(jsonPath("$.codigoProduto").isNumber());
-        verify(produtoService).atualizar(any(UUID.class), any(Produto.class));
-
-        String statusResponse = String.valueOf(responseResultActions.andReturn().getResponse().getStatus());
-        log.info("#TEST_RESULT_STATUS: ".concat((statusResponse.isEmpty()) ? " " : HttpStatus.valueOf(Integer.parseInt(statusResponse)).toString()));
-        toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
+    private void exibirLogResultPraVerificarRetorno(ResultActions resultActions) throws UnsupportedEncodingException {
+        String resultStr = resultActions.andReturn().getResponse().getContentAsString();
+        log.info("#TEST_RESULT: ".concat(resultStr));
     }
 
     @Test
@@ -106,12 +80,50 @@ public class ProdutoControllerTest {
         // -- 03_Verificação_Validação
         responseResultActions
                 .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.descricao").isNotEmpty())
                 .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
                 .andExpect(jsonPath("$.valorCusto").isNumber())
                 .andExpect(jsonPath("$.codigoProduto").isNumber());
         verify(produtoService).salvar(any(Produto.class));
+
+        String statusResponse = String.valueOf(responseResultActions.andReturn().getResponse().getStatus());
+        log.info("#TEST_RESULT_STATUS: ".concat((statusResponse.isEmpty()) ? " " : HttpStatus.valueOf(Integer.parseInt(statusResponse)).toString()));
+        toStringEnd(responseResultActions, MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT() throws Exception {
+        log.info("\n#TEST: deveRetornarStatus202ProducerJSONAoAtualizarProdutoMethodPUT: ");
+
+        // -- 01_Cenário
+        ObjectMapper objectMapper = new ObjectMapper();
+        Produto produtoParam = constroiProdutoValido();
+        produtoParam.setDataCadastro(null);
+
+        UUID idProdutoParam = produtoParam.getId();
+        Produto produtoResultUpdate = produtoParam;
+        produtoResultUpdate.setValorCusto(RandomicoUtil.gerarValorRandomicoDecimal());
+
+        // -- 02_Ação
+        given(produtoService.atualizar(idProdutoParam, produtoParam)).willReturn(produtoResultUpdate);
+        ResultActions responseResultActions = this.mockMvc.perform(put(BASE_URL.concat("/" + produtoParam.getId()))
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(produtoResultUpdate))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+        );
+
+        // -- 03_Verificação_Validação
+        responseResultActions
+                .andExpect(status().isAccepted())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.descricao").isNotEmpty())
+                .andExpect(jsonPath("$.codigoBarras").isNotEmpty())
+                .andExpect(jsonPath("$.valorCusto").isNumber())
+                .andExpect(jsonPath("$.codigoProduto").isNumber());
+        verify(produtoService).atualizar(any(UUID.class), any(Produto.class));
 
         String statusResponse = String.valueOf(responseResultActions.andReturn().getResponse().getStatus());
         log.info("#TEST_RESULT_STATUS: ".concat((statusResponse.isEmpty()) ? " " : HttpStatus.valueOf(Integer.parseInt(statusResponse)).toString()));
