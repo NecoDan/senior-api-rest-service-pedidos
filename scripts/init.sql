@@ -1,5 +1,5 @@
-create database senior_system;
-\c senior_system
+-- create database senior_system;
+-- \c senior_system
 
 create schema if not exists senior_services;
 set schema 'senior_services';
