@@ -8,7 +8,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-public interface IGeraPedido {
+public interface IGeraPedidoService {
 
     void validarProdutosItensPedido(List<ItemPedido> itemPedidoList) throws ServiceException;
 

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GeraPedido implements IGeraPedido {
+public class GeraPedidoService implements IGeraPedidoService {
 
     private final IPedidoService pedidoService;
     private final IProdutoService produtoService;
@@ -42,13 +42,6 @@ public class GeraPedido implements IGeraPedido {
         pedidoUpdate.setValorPercentualDesconto(Objects.isNull(pedido.getValorPercentualDesconto()) ? pedidoUpdate.getValorPercentualDesconto() : pedido.getValorPercentualDesconto());
         efetuarGeracaoPedido(pedidoUpdate, true);
         return pedidoUpdate;
-    }
-
-    private ItemPedido montarItemPedidoFromOther(ItemPedido itemPedidoOrigin, ItemPedido itemPedidoDestino) {
-//        itemPedidoDestino.setPedido(Objects.isNull()itemPedidoOrigin.getPedido());
-//        itemPedidoDestino.setProduto(itemPedidoOrigin.);
-//
-        return itemPedidoDestino;
     }
 
     @Override

@@ -98,20 +98,20 @@ public class ProdutoService implements IProdutoService {
         if (Objects.isNull(produtoId))
             throw new ServiceException("{ID} referente ao Produto encontra-se inválido e/ou inexistente {NULL}.");
 
-        Produto produtoAtualizar = recuperarPorId(produtoId)
-                .map(p -> {
-                    p.setCodigoProduto((Objects.isNull(produto.getCodigoProduto()) || produto.getCodigoProduto() <= 0) ? p.getCodigoProduto() : produto.getCodigoProduto());
-                    p.setCodigoBarras((Objects.isNull(produto.getCodigoBarras()) || produto.getCodigoBarras().isEmpty()) ? p.getCodigoBarras() : produto.getCodigoBarras());
-                    p.setTipoFinalidadeProduto(Objects.isNull(produto.getTipoFinalidadeProduto()) ? p.getTipoFinalidadeProduto() : produto.getTipoFinalidadeProduto());
-                    p.setDescricao((Objects.isNull(produto.getDescricao()) || produto.getDescricao().isEmpty()) ? p.getDescricao() : produto.getDescricao());
-                    p.setAtivo(produto.isAtivo());
-                    p.gerarDataCorrente();
-                    p.tratarValorCustoProdutoPor(produto);
-                    return p;
-                }).orElse(null);
-
+        Produto produtoAtualizar = recuperarPorId(produtoId).map(p -> getMontarProdutoAtualizar(p, produto)).orElse(null);
         this.produtoRepository.save(Objects.requireNonNull(produtoAtualizar));
         return produtoAtualizar;
+    }
+
+    private Produto getMontarProdutoAtualizar(Produto p, Produto produtoParam) {
+        p.setCodigoProduto((Objects.isNull(produtoParam.getCodigoProduto()) || produtoParam.getCodigoProduto() <= 0) ? p.getCodigoProduto() : produtoParam.getCodigoProduto());
+        p.setCodigoBarras((Objects.isNull(produtoParam.getCodigoBarras()) || produtoParam.getCodigoBarras().isEmpty()) ? p.getCodigoBarras() : produtoParam.getCodigoBarras());
+        p.setTipoFinalidadeProduto(Objects.isNull(produtoParam.getTipoFinalidadeProduto()) ? p.getTipoFinalidadeProduto() : produtoParam.getTipoFinalidadeProduto());
+        p.setDescricao((Objects.isNull(produtoParam.getDescricao()) || produtoParam.getDescricao().isEmpty()) ? p.getDescricao() : produtoParam.getDescricao());
+        p.setAtivo(produtoParam.isAtivo());
+        p.gerarDataCorrente();
+        p.tratarValorCustoProdutoPor(produtoParam);
+        return p;
     }
 
     @Override

@@ -3,7 +3,7 @@ package br.com.senior.api.rest.service.pedidos.controller;
 import br.com.senior.api.rest.service.pedidos.model.pedido.ItemPedido;
 import br.com.senior.api.rest.service.pedidos.model.pedido.Pedido;
 import br.com.senior.api.rest.service.pedidos.model.pedido.StatusPedido;
-import br.com.senior.api.rest.service.pedidos.service.gerador.IGeraPedido;
+import br.com.senior.api.rest.service.pedidos.service.gerador.IGeraPedidoService;
 import br.com.senior.api.rest.service.pedidos.service.negocio.IPedidoService;
 import br.com.senior.api.rest.service.pedidos.util.exceptions.ServiceException;
 import io.swagger.annotations.Api;
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class PedidoController {
 
     private final IPedidoService pedidoService;
-    private final IGeraPedido geraPedido;
+    private final IGeraPedidoService geraPedidoService;
     private static final String MSG_VALIDACAO_NOT_FOUND = "Response server: Nenhum pedido(s) encontrado.";
 
     @ApiOperation(value = "Retorna todos os produtos existentes paginável.")
@@ -57,7 +57,7 @@ public class PedidoController {
     @PostMapping("/pedidos")
     public ResponseEntity<Pedido> savePedido(@RequestBody @Valid Pedido pedido) {
         try {
-            return new ResponseEntity<>(this.geraPedido.gerar(pedido), HttpStatus.CREATED);
+            return new ResponseEntity<>(this.geraPedidoService.gerar(pedido), HttpStatus.CREATED);
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
             return new ResponseEntity(e.getLocalizedMessage(), HttpStatus.NOT_FOUND);
@@ -88,7 +88,7 @@ public class PedidoController {
                 return new ResponseEntity(mensagemValidacaoItens, HttpStatus.BAD_REQUEST);
             }
 
-            Optional<Pedido> produtoOptional = Optional.of(geraPedido.atualizarPedido(UUID.fromString(id), pedido));
+            Optional<Pedido> produtoOptional = Optional.of(geraPedidoService.atualizarPedido(UUID.fromString(id), pedido));
             return produtoOptional.map(p -> new ResponseEntity<>(p, HttpStatus.ACCEPTED)).orElseGet(() -> new ResponseEntity(MSG_VALIDACAO_NOT_FOUND, HttpStatus.NOT_FOUND));
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());

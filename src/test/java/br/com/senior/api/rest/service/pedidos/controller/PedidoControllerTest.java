@@ -5,7 +5,7 @@ import br.com.senior.api.rest.service.pedidos.model.cadastro.TipoFinalidadeProdu
 import br.com.senior.api.rest.service.pedidos.model.pedido.ItemPedido;
 import br.com.senior.api.rest.service.pedidos.model.pedido.Pedido;
 import br.com.senior.api.rest.service.pedidos.model.pedido.StatusPedido;
-import br.com.senior.api.rest.service.pedidos.service.gerador.GeraPedido;
+import br.com.senior.api.rest.service.pedidos.service.gerador.GeraPedidoService;
 import br.com.senior.api.rest.service.pedidos.service.negocio.PedidoService;
 import br.com.senior.api.rest.service.pedidos.util.uteis.RandomicoUtil;
 import br.com.senior.api.rest.service.pedidos.util.uteis.StringUtil;
@@ -60,7 +60,7 @@ public class PedidoControllerTest {
     private PedidoService pedidoService;
 
     @MockBean
-    private GeraPedido geraPedido;
+    private GeraPedidoService geraPedido;
 
     private ObjectMapper objectMapper;
 
